@@ -140,6 +140,12 @@
 									"tableSettings": {
 										"type": "ResponsiveTable"
 									}
+								},
+								"@com.sap.vocabularies.UI.v1.LineItem#WithPrediction": {
+									"tableSettings": {
+										"type": "ResponsiveTable",
+										"selectionMode": "Multi"
+									}
 								}
 							},
 							"content": {

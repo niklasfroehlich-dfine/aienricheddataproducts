@@ -104,6 +104,41 @@ module.exports = cds.service.impl(async function () {
       rows_updated: updated
     });
   });
+
+  this.on('applyPrediction', async (req) => {
+    const { Product } = req.params[0];
+
+    const [row] = await SELECT.from(Products)
+      .columns('Product', 'PredictedProductGroup')
+      .where({ Product });
+
+    if (!row?.PredictedProductGroup) {
+      return req.reject(400, 'Für dieses Produkt gibt es keinen KI-Vorschlag.');
+    }
+
+    await UPDATE(Products)
+      .set({
+        ProductGroup: row.PredictedProductGroup,
+        ProductGroupSource: 'AI'
+      })
+      .where({ Product });
+  });
+
+  this.on('setProductGroup', async (req) => {
+    const { Product } = req.params[0];
+    const { value } = req.data;
+
+    if (!value || !value.trim()) {
+      return req.reject(400, 'Bitte eine Produktgruppe angeben.');
+    }
+
+    await UPDATE(Products)
+      .set({
+        ProductGroup: value.trim(),
+        ProductGroupSource: 'MANUAL'
+      })
+      .where({ Product });
+  });
 });
 
 function toDecimal(value) {

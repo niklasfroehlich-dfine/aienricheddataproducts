@@ -26,6 +26,16 @@ annotate service.Products with @(
             },
             { $Type : 'UI.DataField', Label : 'Konfidenz', Value : PredictionConfidence },
             { $Type : 'UI.DataField', Label : 'Herkunft',  Value : ProductGroupSource },
+            {
+                $Type : 'UI.DataFieldForAction',
+                Label : 'Vorschlag übernehmen',
+                Action : 'MainService.applyPrediction',
+            },
+            {
+                $Type : 'UI.DataFieldForAction',
+                Label : 'Produktgruppe manuell setzen',
+                Action : 'MainService.setProductGroup',
+            },
         ],
     },
 
@@ -73,6 +83,11 @@ annotate service.Products with @(
         },
         { $Type : 'UI.DataField', Label : 'Confidence', Value : PredictionConfidence },
         { $Type : 'UI.DataField', Label : 'Source',     Value : ProductGroupSource },
+        {
+            $Type : 'UI.DataFieldForAction',
+            Label : 'Vorschlag übernehmen',
+            Action : 'MainService.applyPrediction',
+        },
     ],
 
     UI.SelectionPresentationVariant #TabAll : {
@@ -125,4 +140,21 @@ annotate service.Products with @(
         Product,
         ProductGroup,
     ],
+
+    
 );
+
+annotate service.Products with actions {
+  applyPrediction @(
+    Common.SideEffects : {
+      TargetProperties : ['_it/ProductGroup', '_it/ProductGroupSource']
+    }
+  );
+  setProductGroup @(
+    Common.SideEffects : {
+      TargetProperties : ['_it/ProductGroup', '_it/ProductGroupSource']
+    }
+  ) (
+    value @title : 'Neue Produktgruppe'
+  );
+};
