@@ -1,0 +1,157 @@
+_schema-version: 3.3.0
+ID: AiEnrichedDataProducts
+version: 1.0.0
+description: "A simple CAP project."
+
+parameters:
+  enable-parallel-deployments: true
+  deploy_mode: html5-repo
+build-parameters:
+  before-all:
+    - builder: custom
+      commands:
+        - npm ci
+        - npx cds build --production
+
+modules:
+  - name: AiEnrichedDataProducts-srv
+    type: nodejs
+    path: gen/srv
+    parameters:
+      instances: 1
+      memory: 256M
+      disk-quota: 1024M
+      buildpack: nodejs_buildpack
+    build-parameters:
+      builder: npm-ci
+    provides:
+      - name: srv-api # required by consumers of CAP services (e.g. approuter)
+        properties:
+          srv-url: ${default-url}
+    requires:
+      - name: AiEnrichedDataProducts-auth
+      - name: AiEnrichedDataProducts-db
+      - name: AiEnrichedDataProducts-destination
+
+  - name: AiEnrichedDataProducts-db-deployer
+    type: hdb
+    path: gen/db
+    parameters:
+      memory: 256M
+      disk-quota: 1024M
+      buildpack: nodejs_buildpack
+    requires:
+      - name: AiEnrichedDataProducts-db
+
+  - name: AiEnrichedDataProducts-app-deployer
+    type: com.sap.application.content
+    path: gen
+    build-parameters:
+      build-result: app/
+      requires:
+        - name: AiEnrichedDataProductsaienricheddataproductsui
+          artifacts:
+            - aienricheddataproductsui.zip
+          target-path: app/
+    requires:
+      - name: AiEnrichedDataProducts-html5-repo-host
+        parameters:
+          content-target: true
+
+  - name: AiEnrichedDataProductsaienricheddataproductsui
+    type: html5
+    path: app/aienricheddataproductsui
+    build-parameters:
+      build-result: dist
+      builder: custom
+      commands:
+        - npm ci
+        - npm run build
+      supported-platforms:
+        []
+
+  - name: AiEnrichedDataProducts-destination-content
+    type: com.sap.application.content
+    build-parameters:
+      no-source: true
+    requires:
+      - name: AiEnrichedDataProducts-html5-repo-runtime
+      - name: AiEnrichedDataProducts-destination
+        parameters:
+          content-target: true
+      - name: AiEnrichedDataProducts-html5-repo-host
+        parameters:
+          service-key:
+            name: AiEnrichedDataProducts-html5-repo-host-key
+      - name: AiEnrichedDataProducts-auth
+        parameters:
+          service-key:
+            name: AiEnrichedDataProducts-auth-key
+    parameters:
+      content:
+        instance:
+          existing_destinations_policy: update
+          destinations:
+            - Name: AiEnrichedDataProducts_html_repo_host
+              ServiceInstanceName: AiEnrichedDataProducts-html5-repo-host
+              ServiceKeyName: AiEnrichedDataProducts-html5-repo-host-key
+              sap.cloud.service: AiEnrichedDataProducts
+            - Name: AiEnrichedDataProducts_uaa
+              Authentication: OAuth2UserTokenExchange
+              ServiceInstanceName: AiEnrichedDataProducts-auth
+              ServiceKeyName: AiEnrichedDataProducts-auth-key
+              sap.cloud.service: AiEnrichedDataProducts
+
+resources:
+  - name: AiEnrichedDataProducts-html5-repo-runtime
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: html5-apps-repo
+      service-plan: app-runtime
+
+  - name: AiEnrichedDataProducts-auth
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: xsuaa
+      service-plan: application
+      path: ./xs-security.json
+      config:
+        xsappname: AiEnrichedDataProducts-${org}-${space}
+        tenant-mode: dedicated
+        oauth2-configuration:
+          credential-types:
+            - "binding-secret"
+            - "x509"
+
+  - name: AiEnrichedDataProducts-db
+    type: com.sap.xs.hdi-container
+    parameters:
+      service: hana
+      service-plan: hdi-shared
+
+  - name: AiEnrichedDataProducts-destination
+    type: org.cloudfoundry.managed-service
+    requires:
+      - name: srv-api
+    parameters:
+      service: destination
+      service-plan: lite
+      config:
+        HTML5Runtime_enabled: true
+        init_data:
+          instance:
+            existing_destinations_policy: update
+            destinations:
+              - Name: srv-api
+                Type: HTTP
+                URL: ~{srv-api/srv-url}
+                ProxyType: Internet
+                Authentication: NoAuthentication
+                HTML5.DynamicDestination: true
+                HTML5.ForwardAuthToken: true
+
+  - name: AiEnrichedDataProducts-html5-repo-host
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: html5-apps-repo
+      service-plan: app-host
