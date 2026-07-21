@@ -42,7 +42,8 @@ module.exports = cds.service.impl(async function () {
       BaseUnit: p.BaseUnit || null,
       GrossWeight: toDecimal(p.GrossWeight),
       NetWeight: toDecimal(p.NetWeight),
-      WeightUnit: p.WeightUnit || null
+      WeightUnit: p.WeightUnit || null,
+      ProductGroupSource: p.ProductGroup ? 'ORIGINAL' : null
     }));
 
     if (mappedProducts.length > 0) {
@@ -53,7 +54,10 @@ module.exports = cds.service.impl(async function () {
   });
 
   this.on('enrichProductData', async () => {
-    const products = await SELECT.from(Products);
+    const products = await SELECT.from(Products).columns(
+      'Product', 'ProductType', 'ProductGroup',
+      'BaseUnit', 'GrossWeight', 'NetWeight', 'WeightUnit'
+    );
     if (products.length === 0) return JSON.stringify({ error: 'Keine Produkte in der DB' });
 
     const creds = getAiCoreCredentials();
@@ -74,7 +78,31 @@ module.exports = cds.service.impl(async function () {
 
     const text = await res.text();
     if (!res.ok) return JSON.stringify({ status: res.status, error: text });
-    return text;
+
+    const result = JSON.parse(text);
+    const predictions = result.predictions || [];
+
+    let updated = 0;
+    for (const row of predictions) {
+      const candidate = (row.ProductGroup || [])[0];
+      if (!candidate) continue;
+
+      await UPDATE(Products)
+        .set({
+          PredictedProductGroup: candidate.prediction,
+          PredictionConfidence:  candidate.confidence
+        })
+        .where({ Product: row.Product });
+
+      updated++;
+    }
+
+    return JSON.stringify({
+      status: result.status,
+      rows_total: result.metadata?.num_rows,
+      rows_queried: result.metadata?.num_query_rows,
+      rows_updated: updated
+    });
   });
 });
 

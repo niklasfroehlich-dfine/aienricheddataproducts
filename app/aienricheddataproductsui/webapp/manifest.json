@@ -102,7 +102,19 @@
           "options": {
             "settings": {
               "contextPath": "/Products",
-              "variantManagement": "Page",
+              "variantManagement": "Control",
+              "views": {
+                "paths": [
+                  {
+                    "key": "tabAll",
+                    "annotationPath": "com.sap.vocabularies.UI.v1.SelectionPresentationVariant#TabAll"
+                  },
+                  {
+                    "key": "tabPredicted",
+                    "annotationPath": "com.sap.vocabularies.UI.v1.SelectionPresentationVariant#TabPredicted"
+                  }
+                ]
+              },
               "navigation": {
                 "Products": {
                   "detail": {
