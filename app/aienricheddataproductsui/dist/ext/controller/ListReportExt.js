@@ -1,0 +1,2 @@
+sap.ui.define(["sap/m/MessageToast"],function(n){"use strict";return{onPing:function(){const t=this.getModel();const e=t.bindContext("/ping(...)");e.invoke().then(function(){const t=e.getBoundContext().getProperty("value");n.show(t)}).catch(function(t){n.show("Fehler: "+t.message)})}}});
+//# sourceMappingURL=ListReportExt.js.map

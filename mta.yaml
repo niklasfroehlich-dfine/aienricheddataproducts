@@ -32,6 +32,7 @@ modules:
       - name: AiEnrichedDataProducts-auth
       - name: AiEnrichedDataProducts-db
       - name: AiEnrichedDataProducts-destination
+      - name: AiEnrichedDataProducts-aicore
 
   - name: AiEnrichedDataProducts-db-deployer
     type: hdb
@@ -155,3 +156,8 @@ resources:
     parameters:
       service: html5-apps-repo
       service-plan: app-host
+  
+  - name: AiEnrichedDataProducts-aicore
+    type: org.cloudfoundry.existing-service
+    parameters:
+      service-name: cf-aicore

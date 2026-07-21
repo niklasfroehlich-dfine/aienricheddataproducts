@@ -1,3 +1,6 @@
+const AICORE_DEPLOYMENT_ID = 'dd208f9b4152c64f';
+const AICORE_RESOURCE_GROUP = 'default';
+
 const { executeHttpRequest } = require('@sap-cloud-sdk/http-client');
 
 module.exports = cds.service.impl(async function () {
@@ -48,6 +51,31 @@ module.exports = cds.service.impl(async function () {
 
     return `${mappedProducts.length} products loaded`;
   });
+
+  this.on('enrichProductData', async () => {
+    const products = await SELECT.from(Products);
+    if (products.length === 0) return JSON.stringify({ error: 'Keine Produkte in der DB' });
+
+    const creds = getAiCoreCredentials();
+    const token = await getAiCoreToken(creds);
+    const payload = buildRptPayload(products);
+
+    const url = `${creds.serviceurls.AI_API_URL}/v2/inference/deployments/${AICORE_DEPLOYMENT_ID}/predict`;
+
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'AI-Resource-Group': AICORE_RESOURCE_GROUP,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(payload)
+    });
+
+    const text = await res.text();
+    if (!res.ok) return JSON.stringify({ status: res.status, error: text });
+    return text;
+  });
 });
 
 function toDecimal(value) {
@@ -70,4 +98,63 @@ async function callIntegrationSuite() {
   );
 
   return response.data;
+}
+
+function getAiCoreCredentials() {
+  const vcap = JSON.parse(process.env.VCAP_SERVICES || '{}');
+  const binding = (vcap.aicore || [])[0];
+  if (!binding) throw new Error('Kein AI-Core-Binding gefunden (VCAP_SERVICES)');
+  return binding.credentials;
+}
+
+async function getAiCoreToken(creds) {
+  const res = await fetch(`${creds.url}/oauth/token?grant_type=client_credentials`, {
+    method: 'POST',
+    headers: {
+      Authorization: 'Basic ' + Buffer.from(`${creds.clientid}:${creds.clientsecret}`).toString('base64')
+    }
+  });
+  if (!res.ok) throw new Error(`Token-Fehler ${res.status}: ${await res.text()}`);
+  return (await res.json()).access_token;
+}
+
+function buildRptPayload(products) {
+  const cols = {
+    Product: [], ProductType: [], ProductGroup: [],
+    BaseUnit: [], GrossWeight: [], NetWeight: [], WeightUnit: []
+  };
+
+  for (const p of products) {
+    cols.Product.push(p.Product ?? null);
+    cols.ProductType.push(p.ProductType ?? null);
+    cols.ProductGroup.push(
+      p.ProductGroup && String(p.ProductGroup).trim() !== '' ? p.ProductGroup : '[PREDICT]'
+    );
+    cols.BaseUnit.push(p.BaseUnit ?? null);
+    cols.GrossWeight.push(p.GrossWeight ?? null);
+    cols.NetWeight.push(p.NetWeight ?? null);
+    cols.WeightUnit.push(p.WeightUnit ?? null);
+  }
+
+  return {
+    index_column: 'Product',
+    prediction_config: {
+      target_columns: [{
+        name: 'ProductGroup',
+        prediction_placeholder: '[PREDICT]',
+        task_type: 'classification',
+        top_k: 1
+      }]
+    },
+    columns: cols,
+    data_schema: {
+      Product:      { dtype: 'string' },
+      ProductType:  { dtype: 'string' },
+      ProductGroup: { dtype: 'string' },
+      BaseUnit:     { dtype: 'string' },
+      GrossWeight:  { dtype: 'numeric' },
+      NetWeight:    { dtype: 'numeric' },
+      WeightUnit:   { dtype: 'string' }
+    }
+  };
 }

@@ -7,6 +7,8 @@ service MainService {
 
   function readProductData() returns String;
 
+  function enrichProductData() returns LargeString;
+
   @readonly
   entity Products as projection on db.Products;
 }

@@ -116,6 +116,18 @@
                     "type": "ResponsiveTable"
                   }
                 }
+              },
+              "content": {
+                "header": {
+                  "actions": {
+                    "pingAction": {
+                      "press": "aienricheddataproductsui.ext.controller.ListReportExt.onPing",
+                      "visible": true,
+                      "enabled": true,
+                      "text": "Ping"
+                    }
+                  }
+                }
               }
             }
           }

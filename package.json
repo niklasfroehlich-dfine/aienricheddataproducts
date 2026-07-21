@@ -15,7 +15,8 @@
   "scripts": {
     "start": "cds-serve",
     "watch-aienricheddataproductsui": "cds watch --open aienricheddataproductsui/index.html?sap-ui-xx-viewCache=false --livereload false",
-    "postinstall": "rm -rf node_modules/@sap/cds-dk/node_modules/@sap/cds"
+    "postinstall": "rm -rf node_modules/@sap/cds-dk/node_modules/@sap/cds",
+    "watch": "cds watch"
   },
   "private": true,
   "workspaces": [
