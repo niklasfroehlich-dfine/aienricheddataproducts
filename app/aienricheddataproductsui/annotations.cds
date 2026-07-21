@@ -56,34 +56,41 @@ annotate service.Products with @(
         },
         {
             $Type : 'UI.DataField',
-            Label : 'ProductType',
+            Label : 'Product Type',
             Value : ProductType,
         },
         {
             $Type : 'UI.DataField',
-            Label : 'ProductGroup',
+            Label : 'Product Group',
             Value : ProductGroup,
         },
         {
             $Type : 'UI.DataField',
-            Label : 'BaseUnit',
+            Label : 'Base Unit',
             Value : BaseUnit,
         },
         {
             $Type : 'UI.DataField',
-            Label : 'GrossWeight',
+            Label : 'Gross Weight',
             Value : GrossWeight,
         },
         {
             $Type : 'UI.DataField',
             Value : NetWeight,
-            Label : 'NetWeight',
-        },
-        {
-            $Type : 'UI.DataField',
-            Value : WeightUnit,
-            Label : 'WeightUnit',
+            Label : 'Net Weight',
         },
     ],
+    UI.SelectionFields : [
+        Product,
+        ProductGroup,
+    ],
 );
+
+annotate service.Products with {
+    ProductGroup @Common.Label : 'ProductGroup'
+};
+
+annotate service.Products with {
+    Product @Common.Label : 'Product'
+};
 
