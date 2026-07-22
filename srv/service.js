@@ -30,24 +30,45 @@ module.exports = cds.service.impl(async function () {
   });
 
   this.on('readProductData', async () => {
-    // TODO: hier deinen funktionierenden Integration-Suite-Call einsetzen
+    await DELETE.from(Products);
+
     const response = await callIntegrationSuite();
 
     const rawProducts = response?.d?.results || [];
 
-    const mappedProducts = rawProducts.map(p => ({
-      Product: p.Product,
-      ProductType: p.ProductType || null,
-      ProductGroup: p.ProductGroup || null,
-      BaseUnit: p.BaseUnit || null,
-      GrossWeight: toDecimal(p.GrossWeight),
-      NetWeight: toDecimal(p.NetWeight),
-      WeightUnit: p.WeightUnit || null,
-      ProductGroupSource: p.ProductGroup ? 'ORIGINAL' : null
-    }));
+    const mappedProducts = rawProducts.map(p => {
+      const val = pickValuation(p.to_Valuation);
+      return {
+        Product: p.Product,
+        ProductType: p.ProductType || null,
+        ProductGroup: p.ProductGroup || null,
+        BaseUnit: p.BaseUnit || null,
+        GrossWeight: toDecimal(p.GrossWeight),
+        NetWeight: toDecimal(p.NetWeight),
+        WeightUnit: p.WeightUnit || null,
+
+        ItemCategoryGroup: p.ItemCategoryGroup || null,
+        HandlingUnitType: p.HandlingUnitType || null,
+        MaterialVolume: toDecimal(p.MaterialVolume),
+        VolumeUnit: p.VolumeUnit || null,
+        LowLevelCode: p.LowLevelCode || null,
+        Division: p.Division || null,
+        IsBatchManagementRequired: p.IsBatchManagementRequired ?? null,
+
+        ProductDescription: pickDescription(p.to_Description),
+
+        ValuationClass: val.ValuationClass || null,
+        StandardPrice: toDecimal(val.StandardPrice),
+        Currency: val.Currency || null,
+        InventoryValuationProcedure: val.InventoryValuationProcedure || null,
+        IsProducedInhouse: val.IsProducedInhouse ?? null,
+
+        ProductGroupSource: p.ProductGroup ? 'ORIGINAL' : null
+      };
+    });
 
     if (mappedProducts.length > 0) {
-      await UPSERT.into(Products).entries(mappedProducts);
+      await INSERT.into(Products).entries(mappedProducts);
     }
 
     return `${mappedProducts.length} products loaded`;
@@ -55,8 +76,13 @@ module.exports = cds.service.impl(async function () {
 
   this.on('enrichProductData', async () => {
     const products = await SELECT.from(Products).columns(
-      'Product', 'ProductType', 'ProductGroup',
-      'BaseUnit', 'GrossWeight', 'NetWeight', 'WeightUnit'
+      'Product', 'ProductType', 'ProductGroup', 'BaseUnit',
+      'GrossWeight', 'NetWeight', 'WeightUnit',
+      'ItemCategoryGroup', 'HandlingUnitType',
+      'MaterialVolume', 'VolumeUnit', 'LowLevelCode', 'Division',
+      'IsBatchManagementRequired', 'ProductDescription',
+      'ValuationClass', 'StandardPrice', 'Currency',
+      'InventoryValuationProcedure', 'IsProducedInhouse'
     );
     if (products.length === 0) return JSON.stringify({ error: 'Keine Produkte in der DB' });
 
@@ -182,21 +208,53 @@ async function getAiCoreToken(creds) {
 }
 
 function buildRptPayload(products) {
-  const cols = {
-    Product: [], ProductType: [], ProductGroup: [],
-    BaseUnit: [], GrossWeight: [], NetWeight: [], WeightUnit: []
+  const fields = {
+    Product:                     'string',
+    ProductDescription:          'string',
+    ProductType:                 'string',
+    ProductGroup:                'string',
+    ItemCategoryGroup:           'string',
+    HandlingUnitType:            'string',
+    BaseUnit:                    'string',
+    GrossWeight:                 'numeric',
+    NetWeight:                   'numeric',
+    WeightUnit:                  'string',
+    MaterialVolume:              'numeric',
+    VolumeUnit:                  'string',
+    LowLevelCode:                'string',
+    Division:                    'string',
+    IsBatchManagementRequired:   'string',
+    ValuationClass:              'string',
+    StandardPrice:               'numeric',
+    Currency:                    'string',
+    InventoryValuationProcedure: 'string',
+    IsProducedInhouse:           'string'
   };
 
+  const cols = {};
+  const data_schema = {};
+  for (const [name, dtype] of Object.entries(fields)) {
+    cols[name] = [];
+    data_schema[name] = { dtype };
+  }
+
   for (const p of products) {
-    cols.Product.push(p.Product ?? null);
-    cols.ProductType.push(p.ProductType ?? null);
-    cols.ProductGroup.push(
-      p.ProductGroup && String(p.ProductGroup).trim() !== '' ? p.ProductGroup : '[PREDICT]'
-    );
-    cols.BaseUnit.push(p.BaseUnit ?? null);
-    cols.GrossWeight.push(p.GrossWeight ?? null);
-    cols.NetWeight.push(p.NetWeight ?? null);
-    cols.WeightUnit.push(p.WeightUnit ?? null);
+    for (const name of Object.keys(fields)) {
+      if (name === 'ProductGroup') {
+        cols.ProductGroup.push(
+          p.ProductGroup && String(p.ProductGroup).trim() !== ''
+            ? p.ProductGroup
+            : '[PREDICT]'
+        );
+      } else {
+        const v = p[name];
+        cols[name].push(
+          v === undefined || v === '' ? null
+          : typeof v === 'boolean' ? String(v)
+          : v
+        );
+      }
+    }
   }
 
   return {
@@ -210,14 +268,18 @@ function buildRptPayload(products) {
       }]
     },
     columns: cols,
-    data_schema: {
-      Product:      { dtype: 'string' },
-      ProductType:  { dtype: 'string' },
-      ProductGroup: { dtype: 'string' },
-      BaseUnit:     { dtype: 'string' },
-      GrossWeight:  { dtype: 'numeric' },
-      NetWeight:    { dtype: 'numeric' },
-      WeightUnit:   { dtype: 'string' }
-    }
+    data_schema
   };
+}
+
+function pickDescription(node) {
+  const rows = node?.results || [];
+  return rows.find(d => d.Language === 'EN')?.ProductDescription
+      ?? rows.find(d => d.Language === 'DE')?.ProductDescription
+      ?? rows[0]?.ProductDescription
+      ?? null;
+}
+
+function pickValuation(node) {
+  return (node?.results || [])[0] || {};
 }

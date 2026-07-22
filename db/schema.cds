@@ -1,5 +1,6 @@
 namespace capSimpleFrontend;
 
+@cds.search: { Product, ProductDescription, ProductGroup, ProductType }
 entity Products {
   key Product      : String(40);
       ProductType  : String(10);
@@ -8,6 +9,25 @@ entity Products {
       GrossWeight  : Decimal(15,3) @Measures.Unit: WeightUnit;
       NetWeight    : Decimal(15,3) @Measures.Unit: WeightUnit;
       WeightUnit   : String(10);
+
+      // --- neu aus A_Product ---
+      ItemCategoryGroup         : String(10);
+      HandlingUnitType          : String(10);
+      MaterialVolume            : Decimal(15,3) @Measures.Unit: VolumeUnit;
+      VolumeUnit                : String(10);
+      LowLevelCode              : String(10);
+      Division                  : String(10);
+      IsBatchManagementRequired : Boolean;
+
+      // --- neu aus to_Description ---
+      ProductDescription        : String(255);
+
+      // --- neu aus to_Valuation ---
+      ValuationClass              : String(10);
+      StandardPrice               : Decimal(15,2) @Measures.ISOCurrency: Currency;
+      Currency                    : String(5);
+      InventoryValuationProcedure : String(5);
+      IsProducedInhouse           : Boolean;
 
       PredictedProductGroup : String(20);
       PredictionConfidence  : Decimal(5,4);

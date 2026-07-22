@@ -151,11 +151,17 @@
 							"content": {
 								"header": {
 									"actions": {
-										"pingAction": {
-											"press": "aienricheddataproductsui.ext.controller.ListReportExt.onPing",
+										"loadAction": {
+											"press": "aienricheddataproductsui.ext.controller.ListReportExt.onLoadProducts",
 											"visible": true,
 											"enabled": true,
-											"text": "Ping"
+											"text": "Daten neu laden"
+										},
+										"enrichAction": {
+											"press": "aienricheddataproductsui.ext.controller.ListReportExt.onEnrichProducts",
+											"visible": true,
+											"enabled": true,
+											"text": "KI-Anreicherung starten"
 										}
 									}
 								}
