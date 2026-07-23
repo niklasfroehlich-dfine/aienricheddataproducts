@@ -168,6 +168,12 @@
 											"visible": true,
 											"enabled": true,
 											"text": "Übertrage Updates"
+										},
+										"resetAction": {
+											"press": "aienricheddataproductsui.ext.controller.ListReportExt.onResetDemo",
+											"visible": true,
+											"enabled": true,
+											"text": "Reset Demo"
 										}
 									}
 								}

@@ -1,0 +1,2 @@
+sap.ui.define([],function(){"use strict";return{resetPreselection:["EWMS4-PAL00","EWMS4-PAL01","EWMS4-PALISU","EWMS4-CAR00","EWMS4-STOCON00","EWMS4-WBTRO00","KUP001","T-AN1","TEST","TST"]}});
+//# sourceMappingURL=demoConfig.js.map

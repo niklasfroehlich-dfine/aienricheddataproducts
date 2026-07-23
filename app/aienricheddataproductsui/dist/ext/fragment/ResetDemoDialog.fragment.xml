@@ -1,0 +1,93 @@
+<core:FragmentDefinition
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core">
+
+    <Dialog
+        id="resetDemoDialog"
+        title="Produktgruppen zurücksetzen"
+        contentWidth="52rem"
+        contentHeight="34rem"
+        resizable="true">
+
+        <content>
+
+            <MessageStrip
+                id="resetHint"
+                text="{reset>/hint}"
+                type="Warning"
+                showIcon="true"
+                class="sapUiSmallMargin"/>
+
+            <Table
+                id="resetTable"
+                items="{reset>/rows}"
+                mode="MultiSelect"
+                growing="true"
+                growingThreshold="100"
+                sticky="ColumnHeaders">
+
+                <headerToolbar>
+                    <OverflowToolbar id="resetToolbar">
+                        <Title
+                            id="resetTitle"
+                            text="Produkte ({= ${reset>/rows}.length })"/>
+                        <ToolbarSpacer id="resetSpacer"/>
+                        <SearchField
+                            id="resetSearch"
+                            width="18rem"
+                            placeholder="Produkt oder Bezeichnung"
+                            liveChange=".onSearchReset"/>
+                    </OverflowToolbar>
+                </headerToolbar>
+
+                <columns>
+                    <Column id="resetColProduct" width="11rem">
+                        <Text id="resetColProductLabel" text="Produkt"/>
+                    </Column>
+                    <Column id="resetColDescription" minScreenWidth="Tablet" demandPopin="true">
+                        <Text id="resetColDescriptionLabel" text="Bezeichnung"/>
+                    </Column>
+                    <Column id="resetColGroup" width="9rem" hAlign="Center">
+                        <Text id="resetColGroupLabel" text="Warengruppe"/>
+                    </Column>
+                    <Column id="resetColSource" width="8rem" hAlign="Center" minScreenWidth="Tablet" demandPopin="true">
+                        <Text id="resetColSourceLabel" text="Herkunft"/>
+                    </Column>
+                </columns>
+
+                <items>
+                    <ColumnListItem id="resetRow" selected="{reset>selected}">
+                        <cells>
+                            <ObjectIdentifier id="resetCellProduct" title="{reset>Product}"/>
+                            <Text id="resetCellDescription" text="{reset>ProductDescription}"/>
+                            <ObjectStatus
+                                id="resetCellGroup"
+                                text="{= ${reset>ProductGroup} || '–' }"
+                                state="{= ${reset>ProductGroup} ? 'None' : 'Information' }"/>
+                            <Text id="resetCellSource" text="{= ${reset>ProductGroupSource} || '–' }"/>
+                        </cells>
+                    </ColumnListItem>
+                </items>
+
+            </Table>
+
+        </content>
+
+        <beginButton>
+            <Button
+                id="confirmResetButton"
+                text="Zurücksetzen"
+                type="Reject"
+                press=".onConfirmReset"/>
+        </beginButton>
+
+        <endButton>
+            <Button
+                id="cancelResetButton"
+                text="Abbrechen"
+                press=".onCancelReset"/>
+        </endButton>
+
+    </Dialog>
+
+</core:FragmentDefinition>

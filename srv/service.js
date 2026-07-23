@@ -114,45 +114,48 @@ module.exports = cds.service.impl(async function () {
       .where({ Product });
   });
 
-  // ------------------------------------------------ Uebertragung ins ERP
+  // ------------------------------------------------------- Helfer fuer ERP
 
-  this.on('writeProductGroupsToErp', async (req) => {
+  /** Prueft die uebergebenen IDs gegen die DB und liefert die gefundenen zurueck. */
+  async function resolveProductIds(req, rawIds) {
     const ids = [...new Set(
-      (req.data.products ?? []).map(p => String(p ?? '').trim()).filter(Boolean)
+      (rawIds ?? []).map(p => String(p ?? '').trim()).filter(Boolean)
     )];
 
     if (!ids.length) {
-      return req.reject(400, 'Es wurde kein Produkt übergeben.');
+      req.reject(400, 'Es wurde kein Produkt übergeben.');
+      return null;
     }
 
-    // Die zu schreibende Warengruppe kommt bewusst aus der DB und nicht vom
-    // Client - so kann kein veralteter Frontend-Stand zurueckgeschrieben werden.
     const rows = await SELECT.from(Products)
       .columns('Product', 'ProductGroup')
       .where({ Product: { in: ids } });
 
     const missing = ids.filter(id => !rows.some(r => r.Product === id));
     if (missing.length) {
-      return req.reject(400, `Unbekannte Produkte: ${missing.join(', ')}`);
+      req.reject(400, `Unbekannte Produkte: ${missing.join(', ')}`);
+      return null;
     }
 
-    const assignments = rows.map(r => ({
-      productId:    r.Product,
-      productGroup: r.ProductGroup?.trim() ?? ''
-    }));
+    return rows;
+  }
 
-    LOG.info(`Übertrage ${assignments.length} Warengruppe(n) ins ERP`);
+  /**
+   * Schreibt Zuordnungen ins ERP und aktualisiert danach nur die Produkte,
+   * deren Schreibvorgang bestaetigt wurde.
+   *
+   * @param {Function} onSuccess  wird pro erfolgreichem Produkt aufgerufen
+   * @param {string}   label      Verb fuer die Ergebnismeldung
+   */
+  async function pushToErp(req, assignments, onSuccess, label) {
+    LOG.info(`${assignments.length} Produkt(e) werden ins ERP geschrieben (${label})`);
 
     const results   = await integrationSuite.writeProductGroups(assignments);
     const succeeded = results.filter(r => r.success);
     const failed    = results.filter(r => !r.success);
 
-    // Nur erfolgreich uebertragene Produkte als synchronisiert markieren.
-    const syncedAt = new Date().toISOString();
     for (const r of succeeded) {
-      await UPDATE(Products)
-        .set({ SyncedProductGroup: r.productGroup || null, LastSyncedAt: syncedAt })
-        .where({ Product: r.productId });
+      await onSuccess(r);
     }
 
     // Fehler einzeln als Message anhaengen -> erscheinen im Fiori Message Popover.
@@ -166,9 +169,68 @@ module.exports = cds.service.impl(async function () {
       succeeded: succeeded.length,
       failed:    failed.length,
       message:   failed.length
-        ? `${succeeded.length} von ${results.length} Produkten übertragen, ${failed.length} fehlgeschlagen.`
-        : `${succeeded.length} Produkt(e) erfolgreich ins ERP übertragen.`
+        ? `${succeeded.length} von ${results.length} Produkten ${label}, ${failed.length} fehlgeschlagen.`
+        : `${succeeded.length} Produkt(e) erfolgreich ${label}.`
     };
+  }
+
+  // ------------------------------------------------ Uebertragung ins ERP
+
+  this.on('writeProductGroupsToErp', async (req) => {
+    const rows = await resolveProductIds(req, req.data.products);
+    if (!rows) return;
+
+    // Die zu schreibende Warengruppe kommt bewusst aus der DB und nicht vom
+    // Client - so kann kein veralteter Frontend-Stand zurueckgeschrieben werden.
+    const assignments = rows.map(r => ({
+      productId:    r.Product,
+      productGroup: r.ProductGroup?.trim() ?? ''
+    }));
+
+    const syncedAt = new Date().toISOString();
+
+    return pushToErp(req, assignments, async (r) => {
+      await UPDATE(Products)
+        .set({
+          SyncedProductGroup: r.productGroup || null,
+          LastSyncedAt:       syncedAt
+        })
+        .where({ Product: r.productId });
+    }, 'übertragen');
+  });
+
+  // ------------------------------------------------------ Demo-Reset
+
+  /**
+   * Leert die Warengruppe der ausgewaehlten Produkte im ERP und danach lokal.
+   *
+   * Bewusst ERP zuerst: Schlaegt der Schreibvorgang fehl, bleibt der lokale
+   * Stand unveraendert und stimmt weiter mit dem ERP ueberein.
+   *
+   * KI-Vorschlaege (PredictedProductGroup/PredictionConfidence) bleiben
+   * erhalten, damit die Demo ohne erneuten Modell-Lauf wiederholt werden kann.
+   */
+  this.on('resetProductGroups', async (req) => {
+    const rows = await resolveProductIds(req, req.data.products);
+    if (!rows) return;
+
+    const assignments = rows.map(r => ({
+      productId:    r.Product,
+      productGroup: ''
+    }));
+
+    const resetAt = new Date().toISOString();
+
+    return pushToErp(req, assignments, async (r) => {
+      await UPDATE(Products)
+        .set({
+          ProductGroup:       null,
+          ProductGroupSource: null,
+          SyncedProductGroup: null,
+          LastSyncedAt:       resetAt
+        })
+        .where({ Product: r.productId });
+    }, 'zurückgesetzt');
   });
 
 });

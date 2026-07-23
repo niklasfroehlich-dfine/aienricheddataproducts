@@ -18,6 +18,10 @@ service MainService {
   action writeProductGroupsToErp(
     products : array of String(40)
   ) returns ProductGroupSyncResult;
+  // Leert die Warengruppe der übergebenen Produkte im ERP und lokal.
+  action resetProductGroups(
+    products : array of String(40)
+  ) returns ProductGroupSyncResult;
 
   // Alle geänderten, aber noch nicht übertragenen Produkte.
   // Sobald SyncedProductGroup == ProductGroup ist, verschwindet der Eintrag.
