@@ -4,7 +4,7 @@
 
     <Dialog
         id="resetDemoDialog"
-        title="Produktgruppen zurücksetzen"
+        title="Reset Product Groups"
         contentWidth="52rem"
         contentHeight="34rem"
         resizable="true">
@@ -30,28 +30,28 @@
                     <OverflowToolbar id="resetToolbar">
                         <Title
                             id="resetTitle"
-                            text="Produkte ({= ${reset>/rows}.length })"/>
+                            text="Products ({= ${reset>/rows}.length })"/>
                         <ToolbarSpacer id="resetSpacer"/>
                         <SearchField
                             id="resetSearch"
                             width="18rem"
-                            placeholder="Produkt oder Bezeichnung"
+                            placeholder="Product or Description"
                             liveChange=".onSearchReset"/>
                     </OverflowToolbar>
                 </headerToolbar>
 
                 <columns>
                     <Column id="resetColProduct" width="11rem">
-                        <Text id="resetColProductLabel" text="Produkt"/>
+                        <Text id="resetColProductLabel" text="Product"/>
                     </Column>
                     <Column id="resetColDescription" minScreenWidth="Tablet" demandPopin="true">
-                        <Text id="resetColDescriptionLabel" text="Bezeichnung"/>
+                        <Text id="resetColDescriptionLabel" text="Description"/>
                     </Column>
                     <Column id="resetColGroup" width="9rem" hAlign="Center">
-                        <Text id="resetColGroupLabel" text="Warengruppe"/>
+                        <Text id="resetColGroupLabel" text="Product Group"/>
                     </Column>
                     <Column id="resetColSource" width="8rem" hAlign="Center" minScreenWidth="Tablet" demandPopin="true">
-                        <Text id="resetColSourceLabel" text="Herkunft"/>
+                        <Text id="resetColSourceLabel" text="Source"/>
                     </Column>
                 </columns>
 
@@ -76,7 +76,7 @@
         <beginButton>
             <Button
                 id="confirmResetButton"
-                text="Zurücksetzen"
+                text="Reset"
                 type="Reject"
                 press=".onConfirmReset"/>
         </beginButton>
@@ -84,7 +84,7 @@
         <endButton>
             <Button
                 id="cancelResetButton"
-                text="Abbrechen"
+                text="Cancel"
                 press=".onCancelReset"/>
         </endButton>
 

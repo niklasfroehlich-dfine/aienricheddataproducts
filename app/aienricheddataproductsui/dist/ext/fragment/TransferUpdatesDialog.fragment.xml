@@ -4,7 +4,7 @@
 
     <Dialog
         id="transferUpdatesDialog"
-        title="Änderungen ins ERP übertragen"
+        title="Transfer Changes to ERP"
         contentWidth="52rem"
         contentHeight="32rem"
         resizable="true">
@@ -13,7 +13,7 @@
 
             <MessageStrip
                 id="transferHint"
-                text="Für die folgenden Produkte wird die Warengruppe ins SAP-System geschrieben. Einzelne Einträge lassen sich vorher abwählen."
+                text="The product group will be written to the SAP system for the following products. Individual entries can be deselected before transfer."
                 type="Information"
                 showIcon="true"
                 class="sapUiSmallMargin"/>
@@ -30,25 +30,25 @@
                     <OverflowToolbar id="pendingToolbar">
                         <Title
                             id="pendingTitle"
-                            text="Offene Änderungen ({= ${pending>/rows}.length })"/>
+                            text="Open Changes ({= ${pending>/rows}.length })"/>
                     </OverflowToolbar>
                 </headerToolbar>
 
                 <columns>
                     <Column id="colProduct" width="10rem">
-                        <Text id="colProductLabel" text="Produkt"/>
+                        <Text id="colProductLabel" text="Product"/>
                     </Column>
                     <Column id="colDescription" minScreenWidth="Tablet" demandPopin="true">
-                        <Text id="colDescriptionLabel" text="Bezeichnung"/>
+                        <Text id="colDescriptionLabel" text="Description"/>
                     </Column>
                     <Column id="colNewGroup" width="9rem" hAlign="Center">
-                        <Text id="colNewGroupLabel" text="Neue Warengruppe"/>
+                        <Text id="colNewGroupLabel" text="New Product Group"/>
                     </Column>
                     <Column id="colSource" width="8rem" hAlign="Center" minScreenWidth="Tablet" demandPopin="true">
-                        <Text id="colSourceLabel" text="Herkunft"/>
+                        <Text id="colSourceLabel" text="Source"/>
                     </Column>
                     <Column id="colSynced" width="9rem" hAlign="Center" minScreenWidth="Tablet" demandPopin="true">
-                        <Text id="colSyncedLabel" text="Bisher im ERP"/>
+                        <Text id="colSyncedLabel" text="Current ERP Value"/>
                     </Column>
                 </columns>
 
@@ -71,7 +71,7 @@
         <beginButton>
             <Button
                 id="confirmTransferButton"
-                text="Übertragen"
+                text="Transfer"
                 type="Emphasized"
                 press=".onConfirmTransfer"/>
         </beginButton>
@@ -79,7 +79,7 @@
         <endButton>
             <Button
                 id="cancelTransferButton"
-                text="Abbrechen"
+                text="Cancel"
                 press=".onCancelTransfer"/>
         </endButton>
 

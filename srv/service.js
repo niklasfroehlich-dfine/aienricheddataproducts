@@ -22,7 +22,7 @@ module.exports = cds.service.impl(async function () {
       const data = await integrationSuite.fetchBatchRequest();
       return typeof data === 'string' ? data : JSON.stringify(data);
     } catch (error) {
-      return `Integration Suite Fehler: ${error.message}`;
+      return `Integration Suite error: ${error.message}`;
     }
   });
 
@@ -46,7 +46,7 @@ module.exports = cds.service.impl(async function () {
       .columns(...mapper.PREDICTION_INPUT_COLUMNS);
 
     if (products.length === 0) {
-      return JSON.stringify({ error: 'Keine Produkte in der DB' });
+      return JSON.stringify({ error: 'No products found in the database.' });
     }
 
     const prediction = await aiCore.predictProductGroups(products);
@@ -91,7 +91,7 @@ module.exports = cds.service.impl(async function () {
       .where({ Product });
 
     if (!row?.PredictedProductGroup) {
-      return req.reject(400, 'Für dieses Produkt gibt es keinen KI-Vorschlag.');
+      return req.reject(400, 'No AI suggestion is available for this product.');
     }
 
     await UPDATE(Products)
@@ -123,7 +123,7 @@ module.exports = cds.service.impl(async function () {
     )];
 
     if (!ids.length) {
-      req.reject(400, 'Es wurde kein Produkt übergeben.');
+      req.reject(400, 'No product was provided.');
       return null;
     }
 
@@ -133,7 +133,7 @@ module.exports = cds.service.impl(async function () {
 
     const missing = ids.filter(id => !rows.some(r => r.Product === id));
     if (missing.length) {
-      req.reject(400, `Unbekannte Produkte: ${missing.join(', ')}`);
+      req.reject(400, `Unknown products: ${missing.join(', ')}`);
       return null;
     }
 
@@ -169,8 +169,8 @@ module.exports = cds.service.impl(async function () {
       succeeded: succeeded.length,
       failed:    failed.length,
       message:   failed.length
-        ? `${succeeded.length} von ${results.length} Produkten ${label}, ${failed.length} fehlgeschlagen.`
-        : `${succeeded.length} Produkt(e) erfolgreich ${label}.`
+        ? `${succeeded.length} of ${results.length} products ${label}; ${failed.length} failed.`
+        : `${succeeded.length} product(s) successfully ${label}.`
     };
   }
 
@@ -196,7 +196,7 @@ module.exports = cds.service.impl(async function () {
           LastSyncedAt:       syncedAt
         })
         .where({ Product: r.productId });
-    }, 'übertragen');
+    }, 'transferred');
   });
 
   // ------------------------------------------------------ Demo-Reset
@@ -230,7 +230,7 @@ module.exports = cds.service.impl(async function () {
           LastSyncedAt:       resetAt
         })
         .where({ Product: r.productId });
-    }, 'zurückgesetzt');
+    }, 'reset');
   });
 
 });

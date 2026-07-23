@@ -6,7 +6,7 @@ const { serviceBinding, deploymentId, resourceGroup } = config.aiCore;
 function getAiCoreCredentials() {
   const vcap = JSON.parse(process.env.VCAP_SERVICES || '{}');
   const binding = (vcap[serviceBinding] || [])[0];
-  if (!binding) throw new Error('Kein AI-Core-Binding gefunden (VCAP_SERVICES)');
+  if (!binding) throw new Error('No AI Core service binding found (VCAP_SERVICES).');
   return binding.credentials;
 }
 
@@ -20,7 +20,7 @@ async function getAiCoreToken(creds) {
         .toString('base64')
     }
   });
-  if (!res.ok) throw new Error(`Token-Fehler ${res.status}: ${await res.text()}`);
+  if (!res.ok) throw new Error(`Token request failed (${res.status}): ${await res.text()}`);
   return (await res.json()).access_token;
 }
 

@@ -64,10 +64,10 @@ sap.ui.define([
     const aLoaded = new Set(aRows.map(oRow => oRow.Product));
     const aMissing = demoConfig.resetPreselection.filter(sId => !aLoaded.has(sId));
 
-    let sHint = "Für die ausgewählten Produkte wird die Warengruppe im SAP-System geleert. " +
-                "Vorausgewählt sind die in der Demo-Konfiguration hinterlegten Produkte.";
+    let sHint = "The product group will be cleared in the SAP system for the selected products. " +
+            "Products defined in the demo configuration are preselected.";
     if (aMissing.length) {
-      sHint += " Nicht in der Datenbank gefunden: " + aMissing.join(", ") + ".";
+      sHint += " Not found in the database: " + aMissing.join(", ") + ".";
     }
 
     return { rows: aRows, hint: sHint };
@@ -108,7 +108,7 @@ sap.ui.define([
         that.refresh();
       }).catch(function (oError) {
         BusyIndicator.hide();
-        MessageBox.error("Laden fehlgeschlagen: " + oError.message);
+        MessageBox.error("Loading failed: " + oError.message);
       });
     },
 
@@ -127,11 +127,11 @@ sap.ui.define([
         try {
           const oResult = JSON.parse(sResult);
           if (oResult.error) {
-            MessageBox.error("Anreicherung fehlgeschlagen: " + oResult.error);
+            MessageBox.error("Enrichment failed: " + oResult.error);
             return;
           }
-          sMessage = oResult.rows_updated + " von " + oResult.rows_queried +
-                     " Produkten angereichert";
+          sMessage = oResult.rows_updated + " of " + oResult.rows_queried +
+                     " Products enriched";
         } catch (e) {
           // Antwort war kein JSON – Rohtext anzeigen
         }
@@ -140,7 +140,7 @@ sap.ui.define([
         that.refresh();
       }).catch(function (oError) {
         BusyIndicator.hide();
-        MessageBox.error("Anreicherung fehlgeschlagen: " + oError.message);
+        MessageBox.error("Enrichment failed: " + oError.message);
       });
     },
 
@@ -156,7 +156,7 @@ sap.ui.define([
         const aRows = await loadPendingRows(oModel);
 
         if (aRows.length === 0) {
-          MessageToast.show("Es gibt keine offenen Änderungen zum Übertragen.");
+          MessageToast.show("There are no open changes to transfer.");
           return;
         }
 
@@ -172,7 +172,7 @@ sap.ui.define([
         oTransferDialog.open();
 
       } catch (oError) {
-        MessageBox.error("Offene Änderungen konnten nicht ermittelt werden: " + oError.message);
+        MessageBox.error("Open changes could not be transferred: " + oError.message);
       } finally {
         BusyIndicator.hide();
       }
@@ -184,7 +184,7 @@ sap.ui.define([
         .filter(oRow => oRow.selected);
 
       if (aSelected.length === 0) {
-        MessageToast.show("Bitte mindestens ein Produkt auswählen.");
+        MessageToast.show("Please choose at least one Product.");
         return;
       }
 
@@ -201,7 +201,7 @@ sap.ui.define([
         oPageApi.refresh();
 
       } catch (oError) {
-        MessageBox.error("Übertragung fehlgeschlagen: " + oError.message);
+        MessageBox.error("Transfer failed: " + oError.message);
       } finally {
         oTransferDialog.setBusy(false);
       }
@@ -223,7 +223,7 @@ sap.ui.define([
         const oData = await loadResetRows(oModel);
 
         if (oData.rows.length === 0) {
-          MessageToast.show("Es sind keine Produkte geladen.");
+          MessageToast.show("Could not load any products.");
           return;
         }
 
@@ -239,7 +239,7 @@ sap.ui.define([
         oResetDialog.open();
 
       } catch (oError) {
-        MessageBox.error("Produkte konnten nicht geladen werden: " + oError.message);
+        MessageBox.error("Could not load any products: " + oError.message);
       } finally {
         BusyIndicator.hide();
       }
@@ -268,7 +268,7 @@ sap.ui.define([
         .filter(oRow => oRow.selected);
 
       if (aSelected.length === 0) {
-        MessageToast.show("Bitte mindestens ein Produkt auswählen.");
+        MessageToast.show("Please choose at least one element.");
         return;
       }
 
@@ -285,7 +285,7 @@ sap.ui.define([
         oPageApi.refresh();
 
       } catch (oError) {
-        MessageBox.error("Zurücksetzen fehlgeschlagen: " + oError.message);
+        MessageBox.error("Reset failed: " + oError.message);
       } finally {
         oResetDialog.setBusy(false);
       }

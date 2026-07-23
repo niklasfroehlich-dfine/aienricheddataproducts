@@ -155,19 +155,19 @@
 											"press": "aienricheddataproductsui.ext.controller.ListReportExt.onLoadProducts",
 											"visible": true,
 											"enabled": true,
-											"text": "Daten neu laden"
+											"text": "Reload from ERP"
 										},
 										"enrichAction": {
 											"press": "aienricheddataproductsui.ext.controller.ListReportExt.onEnrichProducts",
 											"visible": true,
 											"enabled": true,
-											"text": "KI-Anreicherung starten"
+											"text": "Run AI Enrichment"
 										},
 										"transferAction": {
 											"press": "aienricheddataproductsui.ext.controller.ListReportExt.onTransferUpdates",
 											"visible": true,
 											"enabled": true,
-											"text": "Übertrage Updates"
+											"text": "Write to ERP"
 										},
 										"resetAction": {
 											"press": "aienricheddataproductsui.ext.controller.ListReportExt.onResetDemo",

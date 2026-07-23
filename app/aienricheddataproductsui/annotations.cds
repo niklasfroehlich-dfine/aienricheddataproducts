@@ -2,68 +2,78 @@ using MainService as service from '../../srv/service';
 
 annotate service.Products with @(
 
-    // ===== Kopfzeile der Object Page =====
+    // ===== Object Page header =====
     UI.HeaderInfo : {
         $Type          : 'UI.HeaderInfoType',
-        TypeName       : 'Produkt',
-        TypeNamePlural : 'Produkte',
+        TypeName       : 'Product',
+        TypeNamePlural : 'Products',
         Title          : { $Type : 'UI.DataField', Value : ProductDescription },
         Description    : { $Type : 'UI.DataField', Value : Product },
     },
 
-    // ===== Object Page: Stammdaten =====
+    // ===== Object Page: master data =====
     UI.FieldGroup #GeneratedGroup : {
         $Type : 'UI.FieldGroupType',
         Data : [
-            { $Type : 'UI.DataField', Label : 'Produkt',            Value : Product },
-            { $Type : 'UI.DataField', Label : 'Bezeichnung',        Value : ProductDescription },
-            { $Type : 'UI.DataField', Label : 'Produktart',         Value : ProductType },
-            { $Type : 'UI.DataField', Label : 'Warengruppe',        Value : ProductGroup },
-            { $Type : 'UI.DataField', Label : 'Positionstypengr.',  Value : ItemCategoryGroup },
-            { $Type : 'UI.DataField', Label : 'Handling-Unit-Typ',  Value : HandlingUnitType },
-            { $Type : 'UI.DataField', Label : 'Basismengeneinheit', Value : BaseUnit },
-            { $Type : 'UI.DataField', Label : 'Bruttogewicht',      Value : GrossWeight },
-            { $Type : 'UI.DataField', Label : 'Nettogewicht',       Value : NetWeight },
-            { $Type : 'UI.DataField', Label : 'Volumen',            Value : MaterialVolume },
-            { $Type : 'UI.DataField', Label : 'Dispostufe',         Value : LowLevelCode },
-            { $Type : 'UI.DataField', Label : 'Sparte',             Value : Division },
-            { $Type : 'UI.DataField', Label : 'Chargenpflicht',     Value : IsBatchManagementRequired },
+            { $Type : 'UI.DataField', Value : Product },
+            { $Type : 'UI.DataField', Value : ProductDescription },
+            { $Type : 'UI.DataField', Value : ProductType },
+            { $Type : 'UI.DataField', Value : ProductGroup },
+            { $Type : 'UI.DataField', Value : ItemCategoryGroup },
+            { $Type : 'UI.DataField', Value : HandlingUnitType },
+            { $Type : 'UI.DataField', Value : BaseUnit },
+            { $Type : 'UI.DataField', Value : GrossWeight },
+            { $Type : 'UI.DataField', Value : NetWeight },
+            { $Type : 'UI.DataField', Value : MaterialVolume },
+            { $Type : 'UI.DataField', Value : LowLevelCode },
+            { $Type : 'UI.DataField', Value : Division },
+            { $Type : 'UI.DataField', Value : IsBatchManagementRequired },
         ],
     },
 
-    // ===== Object Page: Bewertung =====
+    // ===== Object Page: valuation =====
     UI.FieldGroup #Valuation : {
         $Type : 'UI.FieldGroupType',
         Data : [
-            { $Type : 'UI.DataField', Label : 'Bewertungsklasse', Value : ValuationClass },
-            { $Type : 'UI.DataField', Label : 'Standardpreis',    Value : StandardPrice },
-            { $Type : 'UI.DataField', Label : 'Preissteuerung',   Value : InventoryValuationProcedure },
-            { $Type : 'UI.DataField', Label : 'Eigenfertigung',   Value : IsProducedInhouse },
+            { $Type : 'UI.DataField', Value : ValuationClass },
+            { $Type : 'UI.DataField', Value : StandardPrice },
+            { $Type : 'UI.DataField', Value : InventoryValuationProcedure },
+            { $Type : 'UI.DataField', Value : IsProducedInhouse },
         ],
     },
 
-    // ===== Object Page: KI-Vorschlag =====
+    // ===== Object Page: AI suggestion =====
     UI.FieldGroup #Prediction : {
         $Type : 'UI.FieldGroupType',
         Data : [
+            // Current value first, so it can be compared with the suggestion.
+            { $Type : 'UI.DataField', Value : ProductGroup },
+            { $Type : 'UI.DataField', Value : ProductGroupSource },
             {
                 $Type : 'UI.DataField',
-                Label : 'KI-Vorschlag',
                 Value : PredictedProductGroup,
                 Criticality : ConfidenceCriticality,
             },
-            { $Type : 'UI.DataField', Label : 'Konfidenz', Value : PredictionConfidence },
-            { $Type : 'UI.DataField', Label : 'Herkunft',  Value : ProductGroupSource },
+            { $Type : 'UI.DataField', Value : PredictionConfidence },
             {
                 $Type : 'UI.DataFieldForAction',
-                Label : 'Vorschlag übernehmen',
+                Label : 'Apply Suggestion',
                 Action : 'MainService.applyPrediction',
             },
             {
                 $Type : 'UI.DataFieldForAction',
-                Label : 'Produktgruppe manuell setzen',
+                Label : 'Set Product Group Manually',
                 Action : 'MainService.setProductGroup',
             },
+        ],
+    },
+
+    // ===== Object Page: ERP synchronisation =====
+    UI.FieldGroup #ErpSync : {
+        $Type : 'UI.FieldGroupType',
+        Data : [
+            { $Type : 'UI.DataField', Value : SyncedProductGroup },
+            { $Type : 'UI.DataField', Value : LastSyncedAt },
         ],
     },
 
@@ -71,67 +81,74 @@ annotate service.Products with @(
         {
             $Type  : 'UI.ReferenceFacet',
             ID     : 'GeneratedFacet1',
-            Label  : 'Stammdaten',
+            Label  : 'General Information',
             Target : '@UI.FieldGroup#GeneratedGroup',
         },
         {
             $Type  : 'UI.ReferenceFacet',
             ID     : 'ValuationFacet',
-            Label  : 'Bewertung',
+            Label  : 'Valuation',
             Target : '@UI.FieldGroup#Valuation',
         },
         {
             $Type  : 'UI.ReferenceFacet',
             ID     : 'PredictionFacet',
-            Label  : 'KI-Vorschlag',
+            Label  : 'AI Suggestion',
             Target : '@UI.FieldGroup#Prediction',
         },
+        {
+            $Type  : 'UI.ReferenceFacet',
+            ID     : 'ErpSyncFacet',
+            Label  : 'ERP Synchronisation',
+            Target : '@UI.FieldGroup#ErpSync',
+        },
     ],
 
-    // ===== Tabelle: Tab "Alle Produkte" =====
+    // ===== Table: tab "All Products" =====
+    // Focus: which group is set, where does it come from, is it in the ERP yet.
     UI.LineItem : [
-        { $Type : 'UI.DataField', Label : 'Produkt',      Value : Product },
-        { $Type : 'UI.DataField', Label : 'Bezeichnung',  Value : ProductDescription },
-        { $Type : 'UI.DataField', Label : 'Produktart',   Value : ProductType },
-        { $Type : 'UI.DataField', Label : 'Warengruppe',  Value : ProductGroup },
-        { $Type : 'UI.DataField', Label : 'Bew.klasse',   Value : ValuationClass },
-        { $Type : 'UI.DataField', Label : 'Einheit',      Value : BaseUnit },
-        { $Type : 'UI.DataField', Label : 'Bruttogew.',   Value : GrossWeight },
-        { $Type : 'UI.DataField', Label : 'Herkunft',     Value : ProductGroupSource },
+        { $Type : 'UI.DataField', Value : Product },
+        { $Type : 'UI.DataField', Value : ProductDescription },
+        { $Type : 'UI.DataField', Value : ProductType },
+        { $Type : 'UI.DataField', Value : ValuationClass },
+        { $Type : 'UI.DataField', Value : ProductGroup },
+        { $Type : 'UI.DataField', Value : ProductGroupSource },
+        { $Type : 'UI.DataField', Value : SyncedProductGroup },
         {
             $Type : 'UI.DataField',
-            Label : 'KI-Vorschlag',
             Value : PredictedProductGroup,
             Criticality : ConfidenceCriticality,
         },
-        { $Type : 'UI.DataField', Label : 'Konfidenz',    Value : PredictionConfidence },
+        { $Type : 'UI.DataField', Value : PredictionConfidence },
     ],
 
-    // ===== Tabelle: Tab "KI-Vorschläge" =====
+    // ===== Table: tab "AI Suggestions" =====
+    // Focus: judge the suggestion. The three columns after the description are
+    // the strongest model inputs, so the suggestion can be sanity-checked.
     UI.LineItem #WithPrediction : [
-        { $Type : 'UI.DataField', Label : 'Produkt',       Value : Product },
-        { $Type : 'UI.DataField', Label : 'Bezeichnung',   Value : ProductDescription },
-        { $Type : 'UI.DataField', Label : 'Produktart',    Value : ProductType },
-        { $Type : 'UI.DataField', Label : 'HU-Typ',        Value : HandlingUnitType },
-        { $Type : 'UI.DataField', Label : 'Bew.klasse',    Value : ValuationClass },
+        { $Type : 'UI.DataField', Value : Product },
+        { $Type : 'UI.DataField', Value : ProductDescription },
+        { $Type : 'UI.DataField', Value : ProductType },
+        { $Type : 'UI.DataField', Value : HandlingUnitType },
+        { $Type : 'UI.DataField', Value : ValuationClass },
+        { $Type : 'UI.DataField', Value : ProductGroup },
         {
             $Type : 'UI.DataField',
-            Label : 'KI-Vorschlag',
             Value : PredictedProductGroup,
             Criticality : ConfidenceCriticality,
         },
-        { $Type : 'UI.DataField', Label : 'Konfidenz', Value : PredictionConfidence },
-        { $Type : 'UI.DataField', Label : 'Herkunft',  Value : ProductGroupSource },
+        { $Type : 'UI.DataField', Value : PredictionConfidence },
+        { $Type : 'UI.DataField', Value : ProductGroupSource },
         {
             $Type : 'UI.DataFieldForAction',
-            Label : 'Vorschlag übernehmen',
+            Label : 'Apply Suggestion',
             Action : 'MainService.applyPrediction',
         },
     ],
 
     UI.SelectionPresentationVariant #TabAll : {
         $Type : 'UI.SelectionPresentationVariantType',
-        Text : 'Alle Produkte',
+        Text : 'All Products',
         SelectionVariant : {
             $Type : 'UI.SelectionVariantType',
             SelectOptions : [],
@@ -144,7 +161,7 @@ annotate service.Products with @(
 
     UI.SelectionPresentationVariant #TabPredicted : {
         $Type : 'UI.SelectionPresentationVariantType',
-        Text : 'KI-Vorschläge',
+        Text : 'AI Suggestions',
         SelectionVariant : {
             $Type : 'UI.SelectionVariantType',
             SelectOptions : [
@@ -178,11 +195,17 @@ annotate service.Products with @(
     UI.SelectionFields : [
         Product,
         ProductGroup,
+        ProductGroupSource,
         ProductType,
-        ItemCategoryGroup,
         ValuationClass,
+        ItemCategoryGroup,
     ],
 );
+
+// Technical helper for the traffic-light colouring - never shown as a column.
+annotate service.Products with {
+    ConfidenceCriticality @UI.Hidden;
+};
 
 annotate service.Products with actions {
   applyPrediction @(
@@ -195,6 +218,6 @@ annotate service.Products with actions {
       TargetProperties : ['_it/ProductGroup', '_it/ProductGroupSource']
     }
   ) (
-    value @title : 'Neue Produktgruppe'
+    value @title : 'New Product Group'
   );
 };

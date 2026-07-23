@@ -67,7 +67,7 @@ function describeError(err) {
   let message;
   if (typeof payload === 'string' && payload.trim()) message = payload.trim();
   else if (payload)                                  message = JSON.stringify(payload);
-  else                                               message = err?.message ?? 'Unbekannter Fehler';
+  else                                               message = err?.message ?? 'Unknown error';
 
   return { statusCode, message: message.slice(0, 500) };
 }
@@ -104,7 +104,7 @@ async function writeProductGroups(assignments) {
         productGroup,
         success: true,
         statusCode: response.status,
-        message: 'Warengruppe im ERP gesetzt.'
+        message: 'Product group updated in ERP.'
       };
     } catch (err) {
       const { statusCode, message } = describeError(err);
