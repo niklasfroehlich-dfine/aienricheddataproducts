@@ -162,6 +162,12 @@
 											"visible": true,
 											"enabled": true,
 											"text": "KI-Anreicherung starten"
+										},
+										"transferAction": {
+											"press": "aienricheddataproductsui.ext.controller.ListReportExt.onTransferUpdates",
+											"visible": true,
+											"enabled": true,
+											"text": "Übertrage Updates"
 										}
 									}
 								}

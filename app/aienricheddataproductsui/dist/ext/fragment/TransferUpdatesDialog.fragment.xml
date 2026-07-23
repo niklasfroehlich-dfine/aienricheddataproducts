@@ -1,0 +1,88 @@
+<core:FragmentDefinition
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core">
+
+    <Dialog
+        id="transferUpdatesDialog"
+        title="Änderungen ins ERP übertragen"
+        contentWidth="52rem"
+        contentHeight="32rem"
+        resizable="true">
+
+        <content>
+
+            <MessageStrip
+                id="transferHint"
+                text="Für die folgenden Produkte wird die Warengruppe ins SAP-System geschrieben. Einzelne Einträge lassen sich vorher abwählen."
+                type="Information"
+                showIcon="true"
+                class="sapUiSmallMargin"/>
+
+            <Table
+                id="pendingTable"
+                items="{pending>/rows}"
+                mode="MultiSelect"
+                growing="true"
+                growingThreshold="50"
+                sticky="ColumnHeaders">
+
+                <headerToolbar>
+                    <OverflowToolbar id="pendingToolbar">
+                        <Title
+                            id="pendingTitle"
+                            text="Offene Änderungen ({= ${pending>/rows}.length })"/>
+                    </OverflowToolbar>
+                </headerToolbar>
+
+                <columns>
+                    <Column id="colProduct" width="10rem">
+                        <Text id="colProductLabel" text="Produkt"/>
+                    </Column>
+                    <Column id="colDescription" minScreenWidth="Tablet" demandPopin="true">
+                        <Text id="colDescriptionLabel" text="Bezeichnung"/>
+                    </Column>
+                    <Column id="colNewGroup" width="9rem" hAlign="Center">
+                        <Text id="colNewGroupLabel" text="Neue Warengruppe"/>
+                    </Column>
+                    <Column id="colSource" width="8rem" hAlign="Center" minScreenWidth="Tablet" demandPopin="true">
+                        <Text id="colSourceLabel" text="Herkunft"/>
+                    </Column>
+                    <Column id="colSynced" width="9rem" hAlign="Center" minScreenWidth="Tablet" demandPopin="true">
+                        <Text id="colSyncedLabel" text="Bisher im ERP"/>
+                    </Column>
+                </columns>
+
+                <items>
+                    <ColumnListItem id="pendingRow" selected="{pending>selected}">
+                        <cells>
+                            <ObjectIdentifier id="cellProduct" title="{pending>Product}"/>
+                            <Text id="cellDescription" text="{pending>ProductDescription}"/>
+                            <ObjectStatus id="cellNewGroup" text="{pending>ProductGroup}" state="Success"/>
+                            <Text id="cellSource" text="{pending>ProductGroupSource}"/>
+                            <Text id="cellSynced" text="{= ${pending>SyncedProductGroup} || '–' }"/>
+                        </cells>
+                    </ColumnListItem>
+                </items>
+
+            </Table>
+
+        </content>
+
+        <beginButton>
+            <Button
+                id="confirmTransferButton"
+                text="Übertragen"
+                type="Emphasized"
+                press=".onConfirmTransfer"/>
+        </beginButton>
+
+        <endButton>
+            <Button
+                id="cancelTransferButton"
+                text="Abbrechen"
+                press=".onCancelTransfer"/>
+        </endButton>
+
+    </Dialog>
+
+</core:FragmentDefinition>

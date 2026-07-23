@@ -20,7 +20,8 @@ module.exports = {
       setProductGroup: '/http/set-product-group'
     },
 
-    maxParallelCalls: 1
+    /** Wie viele Warengruppen-Calls gleichzeitig laufen duerfen. 1 = sequentiell. */
+    maxParallelCalls: 5
   },
 
   aiCore: {

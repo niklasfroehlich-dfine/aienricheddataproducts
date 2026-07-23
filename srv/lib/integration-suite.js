@@ -1,7 +1,7 @@
 const { executeHttpRequest } = require('@sap-cloud-sdk/http-client');
 const config = require('../config');
 
-const { destinationName, paths } = config.integrationSuite;
+const { destinationName, paths, maxParallelCalls } = config.integrationSuite;
 
 /**
  * Generischer Aufruf gegen die Integration Suite.
@@ -9,13 +9,6 @@ const { destinationName, paths } = config.integrationSuite;
  * Hinweis: Der Cloud-SDK-Client basiert auf Axios, daher kann auch bei
  * method 'GET' ein JSON-Body ueber `data` mitgegeben werden - genau so,
  * wie es die iFlows mit HTTPS-Sender erwarten.
- *
- * @param {object}  options
- * @param {string}  options.path            Pfad des iFlow-Endpunkts
- * @param {string} [options.method='GET']   HTTP-Methode
- * @param {object} [options.data]           Request-Body (auch bei GET erlaubt)
- * @param {object} [options.headers]        Zusaetzliche Header
- * @param {object} [options.requestConfig]  Weitere Cloud-SDK-Optionen
  */
 async function callIntegrationSuite({
   path,
@@ -51,14 +44,16 @@ async function fetchBatchRequest() {
   return response.data;
 }
 
-const { maxParallelCalls } = config.integrationSuite;
-
-/** Schreibt eine einzelne Warengruppe ins ERP. */
+/**
+ * Schreibt eine einzelne Warengruppe ins ERP.
+ *
+ * Der iFlow haengt aktuell an einem HTTPS-Sender, der GET mit JSON-Body
+ * annimmt. Nach der Umstellung in der Integration Suite hier auf 'PATCH'
+ * aendern - sonst aendert sich nichts.
+ */
 async function setProductGroup({ productId, productGroup }) {
   return callIntegrationSuite({
     path: paths.setProductGroup,
-    // Der iFlow haengt aktuell am HTTPS-Sender mit GET + JSON-Body.
-    // Nach Umstellung in der Integration Suite hier auf 'PATCH' aendern.
     method: 'GET',
     data: { productId, productGroup }
   });
@@ -95,15 +90,18 @@ async function runWithLimit(items, limit, worker) {
 }
 
 /**
- * Schreibt mehrere Zuordnungen. Bricht bei Fehlern nicht ab, sondern
- * liefert pro Eintrag ein Statusobjekt zurueck.
+ * Schreibt mehrere Zuordnungen. Bricht bei Fehlern nicht ab, sondern liefert
+ * pro Eintrag ein Statusobjekt zurueck.
+ *
+ * @param {Array<{productId: string, productGroup: string}>} assignments
  */
 async function writeProductGroups(assignments) {
   return runWithLimit(assignments, maxParallelCalls, async ({ productId, productGroup }) => {
     try {
       const response = await setProductGroup({ productId, productGroup });
       return {
-        productId, productGroup,
+        productId,
+        productGroup,
         success: true,
         statusCode: response.status,
         message: 'Warengruppe im ERP gesetzt.'

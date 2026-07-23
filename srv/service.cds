@@ -1,18 +1,11 @@
 using { capSimpleFrontend as db } from '../db/schema';
 
-type ProductGroupAssignment : {
-  productId    : String(40) not null;
-  productGroup : String(9)  not null;
+type ProductGroupSyncResult : {
+    total     : Integer;
+    succeeded : Integer;
+    failed    : Integer;
+    message   : String;
 }
-
-type ProductGroupResult : {
-  productId    : String(40);
-  productGroup : String(9);
-  success      : Boolean;
-  statusCode   : Integer;
-  message      : String;
-}
-
 
 @requires: 'any'
 service MainService {
@@ -20,9 +13,29 @@ service MainService {
   function triggerIntegration() returns String;
   function readProductData() returns String;
   function enrichProductData() returns LargeString;
+  // Übergeben werden nur die Produkt-IDs; die Warengruppe liest
+  // das Backend selbst aus der DB.
   action writeProductGroupsToErp(
-    assignments : array of ProductGroupAssignment
-  ) returns array of ProductGroupResult;
+    products : array of String(40)
+  ) returns ProductGroupSyncResult;
+
+  // Alle geänderten, aber noch nicht übertragenen Produkte.
+  // Sobald SyncedProductGroup == ProductGroup ist, verschwindet der Eintrag.
+  @readonly
+  entity PendingProductGroupUpdates as
+    select from db.Products {
+      Product,
+      ProductDescription,
+      ProductGroup,
+      ProductGroupSource,
+      PredictedProductGroup,
+      PredictionConfidence,
+      SyncedProductGroup,
+      LastSyncedAt
+    }
+    where ProductGroupSource in ('MANUAL', 'AI')
+      and coalesce(SyncedProductGroup, '') <> coalesce(ProductGroup, '');
+
 
   @readonly
   entity Products as projection on db.Products actions {

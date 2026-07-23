@@ -33,6 +33,11 @@ entity Products {
       PredictionConfidence  : Decimal(5,4);
       ProductGroupSource    : String(10);
 
+      // Zuletzt erfolgreich ins ERP übertragene Warengruppe.
+      // Weicht sie von ProductGroup ab, gilt der Eintrag als "offen".
+      SyncedProductGroup : String(9);
+      LastSyncedAt       : Timestamp;
+
       ConfidenceCriticality : Integer = case
           when PredictionConfidence >= 0.8 then 3
           when PredictionConfidence >= 0.5 then 2
